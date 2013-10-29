@@ -12,7 +12,7 @@ config = {
     'version': '0.1',
     'install_requires': ['nose'],
     'packages': ['qualpy'],
-    'scripts': ['qualpy'],
+    'scripts': ['qualpy.py'],
     'name': 'qualpy'
 }
 
