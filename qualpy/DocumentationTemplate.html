@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+    <head>
+        <style>
+            table {
+                border: 1px solid black;
+                border-collapse: collapse;
+                width: 100%;
+            }
+            table.choices, table.choices th, table.choices td {
+                border: none;
+            }
+            caption {
+                background-color: blu;
+                color: white;
+            }
+            tbody tr:nth-child(odd){ background-color: lightblue; }
+            tbody tr:nth-child(odd) tr:nth-child(even){ background-color: white; }
+            tbody tr:nth-child(even) tr:nth-child(odd){ background-color: lightgray; }
+            td, th {
+                border: 1px solid black;
+                vertical-align: top;
+            }
+        </style>
+    </head>
+    <body>
+        <table id="tables">
+            <caption>
+                <h2>Tables</h2>
+            </caption>
+            <thead>
+                <tr>
+                    <th>Table</th>
+                    <th>Survey Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for survey in surveys %}
+                <tr>
+                    <td><a href="#{{ survey.TableName }}">{{ survey.TableName }}</a></td>
+                    <td>{{ survey.SurveyName }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% for survey in surveys %}
+            <br />
+            <br />
+            <a id="{{ survey.TableName }}" href="#tables" style="float: right; margin-right: 2em;">&uarr; Top</a>
+            <table>
+                <caption>
+                    <h4>{{ survey.TableName }}</h4>
+
+                    <em>{{ survey.SurveyName }}</em>
+                </caption>
+                <thead>
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Question Text</th>
+                        <th>Codes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for question in survey.Questions %}
+                    <tr>
+                        <td>{{ question.ID }}</td>
+                        <td>{{ question.Text }}</td>
+                        <td>
+                            <table class="choices">
+                            {% for choice in question.Choices  %}
+                                <tr>
+                                    <td><strong>{{ choice.Recode }}</strong></td>
+                                    <td>{{ choice.Description }}</td>
+                                </tr>
+                            {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+
+    </body>
+</html>
