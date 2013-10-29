@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # qualpy
 your Qualtrics buddy
 
@@ -16,3 +17,9 @@ qualpy does the following.
 
 download - downloads the results in csv format for all active surveys.
 document - generates an html document describing the surveys (tables) and questions (columns)
+=======
+qualpy
+======
+
+your Qualtrics buddy.
+>>>>>>> ced96937b5078746a0bf2843bf2affa48ed6073f
