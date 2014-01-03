@@ -9,7 +9,7 @@ config = {
     'url': 'https://github.com/3nth/qualpy',
     'download_url': 'https://github.com/3nth/qualpy',
     'author_email': 'derek.flenniken@ucsf.edu',
-    'version': '0.1',
+    'version': '0.2.0',
     'install_requires': ['nose', 'BeautifulSoup4', 'lxml', 'requests'],
     'packages': ['qualpy'],
     'scripts': ['qualpy/qualpy.py'],
