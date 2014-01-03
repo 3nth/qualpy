@@ -6,10 +6,6 @@ qualy.py
 Created by Derek Flenniken on 11/1/2013.
 Copyright (c) 2013 Center for Imaging of Neurodegenerative Diseases
 """
-import urllib2
-import json
-import xml.etree.ElementTree as ET
-from jinja2 import Environment, PackageLoader
 import argparse
 from os import path
 import logging
@@ -17,9 +13,12 @@ import os
 import csv
 from StringIO import StringIO
 
+import xml.etree.ElementTree as ET
+from jinja2 import Environment, PackageLoader
+import requests
 
-qualtrics_url= 'https://new.qualtrics.com/WRAPI/ControlPanel/api.php'
-qualtrics_api_version = '2.0'
+QUALTRICS_URL= 'https://new.qualtrics.com/WRAPI/ControlPanel/api.php'
+QUALTRICS_API_VERSION = '2.0'
 
 auth = {
     "qualtrics_user": "",
@@ -46,19 +45,17 @@ def read_auth(authfile):
     auth["qualtrics_user"] = f.readline().rstrip()
     auth["qualtrics_token"] = f.readline().rstrip()
     f.close()
-    auth["base_url"] = '{0}?User={1}&Token={2}&Version={3}'.format(
-        qualtrics_url,
-        urllib2.quote(auth["qualtrics_user"]),
-        urllib2.quote(auth["qualtrics_token"]),
-        qualtrics_api_version
-    )
-    logging.debug(auth["base_url"])
 
 def get_surveys():
-    url = '{0}&Request=getSurveys&Format=JSON'.format(auth["base_url"])
-    req = urllib2.Request(url)
-    response = urllib2.urlopen(req)
-    output = json.loads(response.read())
+    payload = { 
+        'User': auth['qualtrics_user'], 
+        'Token': auth['qualtrics_token'], 
+        'Version': QUALTRICS_API_VERSION,
+        'Request': 'getSurveys',
+        'Format': 'JSON'
+        }
+    r = requests.get(QUALTRICS_URL, params=payload)
+    output = r.json()
     return output['Result']['Surveys']
 
 def get_active_surveys():
@@ -68,9 +65,18 @@ def get_survey(survey_id):
     logger.debug("fetching survey '%s'" % survey_id)
     url = '{0}&Request=getSurvey&SurveyID={1}'.format(auth["base_url"], urllib2.quote(survey_id))
     logger.debug(url)
-    req = urllib2.Request(url)
-    response = urllib2.urlopen(req)
-    survey = response.read()
+    payload = { 
+        'User': auth['qualtrics_user'], 
+        'Token': auth['qualtrics_token'], 
+        'Version': QUALTRICS_API_VERSION,
+        'Request': 'getSurvey',
+        'SurveyID': survey_id
+        }
+    r = requests.get(QUALTRICS_URL, params=payload)
+    logger.debug(r.url)
+    logger.debug(r.status_code)
+    r.raise_for_status()
+    survey = r.content
     return survey
 
 
@@ -107,10 +113,17 @@ def parse_question(node):
 
 def get_data(survey_id):
     url = '{0}&Request=getLegacyResponseData&SurveyID={1}&Format=CSV&ExportQuestionIDs=1'.format(auth["base_url"], urllib2.quote(survey_id))
-    req = urllib2.Request(url)
-    response = urllib2.urlopen(req)
-    rread = response.read()
-    return rread
+    payload = { 
+        'User': auth['qualtrics_user'], 
+        'Token': auth['qualtrics_token'], 
+        'Version': QUALTRICS_API_VERSION,
+        'Request': 'getLegacyResponseData',
+        'Format': 'CSV',
+        'ExportQuestionIDs': 1,
+        'SurveyID': survey_id
+        }
+    r = requests.get(QUALTRICS_URL, params=payload)
+    return r.content
 
 def write_csv(data, filepath):
     reader = csv.reader(StringIO(data))
@@ -168,23 +181,35 @@ def document(docpath):
     f.write(template.render(surveys=surveys))
     f.close()
 
-def download(downloaddir):
+def download(downloaddir, survey_id=None):
     if not path.exists(downloaddir):
         os.makedirs(downloaddir)
 
-    surveys = get_active_surveys()
-    for survey in surveys:
-        logger.info('Downloading "%s" ...' % survey['SurveyName'])
+    if survey_id:
+        logger.info("Downloading {0}".format(survey_id))
         data = get_data(survey['SurveyID'])
         tablename = surveyname2tablename(survey['SurveyName'])
         downloadpath = path.join(downloaddir, tablename + '.csv')
         write_csv(data, downloadpath)
+    
+    else:
+        surveys = get_active_surveys()
+        for survey in surveys:
+            logger.info('Downloading "%s" ...' % survey['SurveyName'])
+            data = get_data(survey['SurveyID'])
+            tablename = surveyname2tablename(survey['SurveyName'])
+            downloadpath = path.join(downloaddir, tablename + '.csv')
+            write_csv(data, downloadpath)
 
+def list():
+    surveys = get_active_surveys()
+    for survey in surveys:
+        print "{0}: {1}".format(survey['SurveyID'], survey['SurveyName'])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("qualpy")
     parser.add_argument('--auth', action="store")
-    parser.add_argument('action', action="store", choices=('document', 'download'))
+    parser.add_argument('action', action="store", choices=('document', 'download', 'list'))
     parser.add_argument('dst', action="store")
     args = parser.parse_args()
 
@@ -194,5 +219,7 @@ if __name__ == "__main__":
         document(args.dst)
     elif args.action == 'download':
         download(args.dst)
+    elif args.action == 'list':
+        list()
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
