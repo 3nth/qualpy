@@ -13,6 +13,10 @@ import os
 import csv
 from StringIO import StringIO
 
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "qualpy"
+from .core import Qualtrics
+
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
 import requests
@@ -22,7 +26,7 @@ QUALTRICS_API_VERSION = '2.0'
 
 auth = {
     "qualtrics_user": "",
-    "qualrics_token": '',
+    "qualtrics_token": '',
     "base_url": ""
 }
 
@@ -207,7 +211,8 @@ def download(downloaddir, survey_id=None):
             write_csv(data, downloadpath)
 
 def list():
-    surveys = get_active_surveys()
+    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+    surveys = q.get_active_surveys()
     for survey in surveys:
         print "{0}: {1}".format(survey['SurveyID'], survey['SurveyName'])
 
