@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+# encoding: utf-8
+"""
+qualy.py
+
+Created by Derek Flenniken on 11/1/2013.
+Copyright (c) 2013 Center for Imaging of Neurodegenerative Diseases
+"""
 import urllib2
 import json
 import xml.etree.ElementTree as ET
@@ -187,3 +194,5 @@ if __name__ == "__main__":
         document(args.dst)
     elif args.action == 'download':
         download(args.dst)
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
