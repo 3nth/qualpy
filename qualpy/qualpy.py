@@ -13,7 +13,7 @@ import os
 import csv
 from StringIO import StringIO
 
-import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
 import requests
 
@@ -63,8 +63,6 @@ def get_active_surveys():
 
 def get_survey(survey_id):
     logger.debug("fetching survey '%s'" % survey_id)
-    url = '{0}&Request=getSurvey&SurveyID={1}'.format(auth["base_url"], urllib2.quote(survey_id))
-    logger.debug(url)
     payload = { 
         'User': auth['qualtrics_user'], 
         'Token': auth['qualtrics_token'], 
@@ -82,34 +80,41 @@ def get_survey(survey_id):
 
 def get_survey_questions(survey_id):
     details = get_survey(survey_id)
-    tree = ET.fromstring(details)
     questions = []
-    for node in tree.findall('.//Questions/Question'):
-        question = parse_question(node)
-        questions.append(question)
 
+    survey = BeautifulSoup(details, 'xml')
+    for q in survey.Questions.find_all('Question'):
+        question = parse_question(q)
+        questions.append(question)
     return questions
 
+def parse_question(q):
 
-def parse_question(node):
-    q_id = node.attrib.get('QuestionID')
-    q_text = node.findtext('./QuestionText')
-    q_type = node.findtext('./Type')
-    q_choices = []
-    q_answers = []
+    choices = []
+    if q.Choices:
+        for choice in q.Choices.find_all('Choice'):
+            choices.append({
+                "ID": choice['ID'], 
+                "Recode": choice['Recode'], 
+                "Description": choice.Description
+            })
 
-    for choice in node.findall('./Choices/Choice'):
-        c_id = choice.attrib.get('ID')
-        c_recode = choice.attrib.get('Recode')
-        c_description = choice.findtext('./Description')
-        q_choices.append({"ID": c_id, "Recode": c_recode, "Description": c_description})
-
-    for answer in node.findall('./Answers/Answer'):
-        a_id = answer.attrib.get('ID')
-        a_recode = answer.attrib.get('Recode')
-        a_description = answer.findtext('./Description')
-        q_answers.append({"ID": a_id, "Recode": a_recode, "Description": a_description})
-    return {"ID": q_id, "Type": q_type, "Text": q_text, "Choices": q_choices, "Answers": q_answers}
+    answers = []
+    if q.Answers:
+        for answer in q.Answers.find_all('Answer'):
+            answers.append({
+                "ID": answer['ID'], 
+                "Recode": answer['Recode'], 
+                "Description": answer.Description
+            })
+            
+    return {
+        "ID": q['QuestionID'], 
+        "Type": q.Type, 
+        "Text": q.QuestionText, 
+        "Choices": choices, 
+        "Answers": answers
+    }
 
 def get_data(survey_id):
     url = '{0}&Request=getLegacyResponseData&SurveyID={1}&Format=CSV&ExportQuestionIDs=1'.format(auth["base_url"], urllib2.quote(survey_id))
