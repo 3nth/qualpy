@@ -120,40 +120,6 @@ def parse_question(q):
         "Answers": answers
     }
 
-def get_data(survey_id):
-    url = '{0}&Request=getLegacyResponseData&SurveyID={1}&Format=CSV&ExportQuestionIDs=1'.format(auth["base_url"], urllib2.quote(survey_id))
-    payload = { 
-        'User': auth['qualtrics_user'], 
-        'Token': auth['qualtrics_token'], 
-        'Version': QUALTRICS_API_VERSION,
-        'Request': 'getLegacyResponseData',
-        'Format': 'CSV',
-        'ExportQuestionIDs': 1,
-        'SurveyID': survey_id
-        }
-    r = requests.get(QUALTRICS_URL, params=payload)
-    return r.content
-
-def write_csv(data, filepath):
-    reader = csv.reader(StringIO(data))
-    rows = [row for row in reader]
-    header1 = rows[0]
-    header2 = rows[1]
-    data = rows[2:]
-    header = clean_header(header1, header2)
-    data.insert(0, header)
-
-    f = open(filepath, 'wb')
-    writer = csv.writer(f)
-    writer.writerows(data)
-    f.close()
-
-def clean_header(header1, header2):
-    logging.debug("Header1: %s" % len(header1))
-    logging.debug("Header2: %s" % len(header2))
-    return [h1 if h1.startswith('QID') else h2 for h1, h2 in zip(header1,  header2)]
-
-
 def count_words():
     for survey in get_surveys():
         if survey['SurveyStatus'] is not None: # == u'Active':
@@ -172,11 +138,6 @@ def count_words():
 
             print "%s: %s" % (survey['SurveyName'], word_count)
 
-
-def surveyname2tablename(surveyname):
-    return surveyname.replace(' ', '').replace('-', '_')
-
-
 def document(docpath):
     env = Environment(loader=PackageLoader("qualpy", ""))
     template = env.get_template("DocumentationTemplate.html")
@@ -191,25 +152,36 @@ def document(docpath):
     f.close()
 
 def download(downloaddir, survey_id=None):
+    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+    
     if not path.exists(downloaddir):
         os.makedirs(downloaddir)
 
     if survey_id:
         logger.info("Downloading {0}".format(survey_id))
-        data = get_data(survey['SurveyID'])
+        data = q.get_data(survey['SurveyID'])
         tablename = surveyname2tablename(survey['SurveyName'])
         downloadpath = path.join(downloaddir, tablename + '.csv')
         write_csv(data, downloadpath)
     
     else:
-        surveys = get_active_surveys()
+        surveys = q.get_active_surveys()
         for survey in surveys:
             logger.info('Downloading "%s" ...' % survey['SurveyName'])
-            data = get_data(survey['SurveyID'])
+            data = q.get_data(survey['SurveyID'])
             tablename = surveyname2tablename(survey['SurveyName'])
             downloadpath = path.join(downloaddir, tablename + '.csv')
             write_csv(data, downloadpath)
 
+def surveyname2tablename(surveyname):
+    return surveyname.replace(' ', '').replace('-', '_')
+
+def write_csv(data, filepath):
+    f = open(filepath, 'wb')
+    writer = csv.writer(f)
+    writer.writerows(data)
+    f.close()
+    
 def list():
     q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
     surveys = q.get_active_surveys()
