@@ -4,6 +4,7 @@
 qualy.py
 
 Created by Derek Flenniken on 11/1/2013.
+
 Copyright (c) 2013 Center for Imaging of Neurodegenerative Diseases
 """
 import argparse
@@ -13,9 +14,7 @@ import os
 import csv
 from StringIO import StringIO
 
-if __name__ == "__main__" and __package__ is None:
-    __package__ = "qualpy"
-from .core import Qualtrics
+from qualpy import Qualtrics
 
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
@@ -161,7 +160,7 @@ def write_csv(data, filepath):
     f.close()
     
 def list():
-    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+    q = Qualtrics(args.auth)
     surveys = q.get_active_surveys()
     for survey in surveys:
         print "{0}: {1}".format(survey['SurveyID'], survey['SurveyName'])
@@ -180,6 +179,6 @@ if __name__ == "__main__":
     elif args.action == 'download':
         download(args.dst)
     elif args.action == 'list':
-        list()
+        list(args)
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4

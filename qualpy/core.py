@@ -19,11 +19,16 @@ logger = logging.getLogger(__name__)
 
 class Qualtrics(object):
     
-    def __init__(self, user, token, library_id):
-        self._user = user
-        self._token = token
-        self._library_id = library_id
+    def __init__(self, auth):
+        self._read_auth(auth)
         self._init_session()
+    
+    def _read_auth(self, authfile):
+        f = open(authfile, 'rt')
+        self._user = f.readline().rstrip()
+        self._token = f.readline().rstrip()
+        self._library_id = f.readline().rstrip()
+        f.close()
         
     def _init_session(self):
         payload = { 
@@ -35,6 +40,14 @@ class Qualtrics(object):
         self._session.params = payload
         
     def get_surveys(self):
+        """Gets all surveys in account
+        
+        Args:
+            None
+            
+        Returns:
+            list: a list of all surveys
+        """
         payload = { 
             'Request': 'getSurveys',
             'Format': 'JSON'
