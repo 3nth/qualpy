@@ -24,6 +24,7 @@ class Qualtrics(object):
         self._init_session()
     
     def _read_auth(self, authfile):
+        logger.debug('reading auth file: %s' % authfile)
         f = open(authfile, 'rt')
         self._user = f.readline().rstrip()
         self._token = f.readline().rstrip()

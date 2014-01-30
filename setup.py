@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 try:
     from setuptools import setup
 except ImportError:
@@ -12,10 +13,19 @@ config = {
     'download_url': 'https://github.com/3nth/qualpy',
     'author_email': 'derek.flenniken@ucsf.edu',
     'version': qualpy.__version__,
-    'install_requires': ['nose', 'BeautifulSoup4', 'lxml', 'requests'],
+    'install_requires': ['nose', 'BeautifulSoup4', 'lxml', 'requests', 'cliff'],
     'packages': ['qualpy'],
-    'scripts': ['scripts/qualpy'],
-    'name': 'qualpy'
+    'scripts': [],
+    'entry_points': {
+        'console_scripts': [
+            'qualpy = qualpy.main:main'
+        ],
+        'qualpy': [
+            'list = qualpy.main:List'
+        ],
+    },
+    'name': 'qualpy',
+    'zip_safe': False,
 }
 
 setup(**config)
