@@ -3,16 +3,18 @@ try:
 except ImportError:
     from distutils.core import setup
 
+import qualpy
+
 config = {
-    'description': 'qualpy',
+    'description': 'your qualtrics buddy',
     'author': 'Derek Flenniken',
     'url': 'https://github.com/3nth/qualpy',
     'download_url': 'https://github.com/3nth/qualpy',
     'author_email': 'derek.flenniken@ucsf.edu',
-    'version': '0.1',
-    'install_requires': ['nose', 'json'],
+    'version': qualpy.__version__,
+    'install_requires': ['nose', 'BeautifulSoup4', 'lxml', 'requests'],
     'packages': ['qualpy'],
-    'scripts': ['qualpy/qualpy.py'],
+    'scripts': ['scripts/qualpy'],
     'name': 'qualpy'
 }
 
