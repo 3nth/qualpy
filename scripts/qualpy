@@ -20,48 +20,27 @@ from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
 import requests
 
-QUALTRICS_URL= 'https://new.qualtrics.com/WRAPI/ControlPanel/api.php'
-QUALTRICS_API_VERSION = '2.0'
-
-auth = {
-    "qualtrics_user": "",
-    "qualtrics_token": '',
-    "base_url": "",
-    "library_id": ""
-}
-
 logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger("qualpy")
-# create console handler and set level to debug
 ch = logging.StreamHandler()
-# create formatter
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-# add formatter to ch
 ch.setFormatter(formatter)
-# add ch to logger
 logger.addHandler(ch)
 
 
-def read_auth(authfile):
-    f = open(authfile, 'rt')
-    auth["qualtrics_user"] = f.readline().rstrip()
-    auth["qualtrics_token"] = f.readline().rstrip()
-    auth["library_id"] = f.readline().rstrip()
-    f.close()
-
-def document(docpath):
-    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+def document(args):
+    q = Qualtrics(args.auth)
     
     env = Environment(loader=PackageLoader("qualpy", ""))
-    template = env.get_template("DocumentationTemplate.html")
+    template = env.get_template("/Users/derek/projects/qualpy/qualpy/DocumentationTemplate.html")
     surveys = q.get_active_surveys()
     for survey in surveys:
         survey['TableName'] = surveyname2tablename(survey['SurveyName'])
         questions = parse_survey_questions(survey)
         survey['Questions'] = questions
 
-    f = open(docpath, 'wt')
+    f = open(args.dst, 'wt')
     f.write(template.render(surveys=surveys))
     f.close()
     
@@ -121,17 +100,17 @@ def count_words():
 
             print "%s: %s" % (survey['SurveyName'], word_count)
 
-def download(downloaddir, survey_id=None):
-    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'], auth['library_id'])
+def download(args):
+    q = Qualtrics(args.auth)
     
-    if not path.exists(downloaddir):
-        os.makedirs(downloaddir)
+    if not path.exists(args.dst):
+        os.makedirs(args.dst)
 
-    if survey_id:
+    if False: #args.survey_id:
         logger.info("Downloading {0}".format(survey_id))
         data = q.get_survey_data(survey['SurveyID'])
         tablename = surveyname2tablename(survey['SurveyName'])
-        downloadpath = path.join(downloaddir, tablename + '.csv')
+        downloadpath = path.join(args.dst, tablename + '.csv')
         write_csv(data, downloadpath)
     
     else:
@@ -140,14 +119,14 @@ def download(downloaddir, survey_id=None):
             logger.info('Downloading "%s" ...' % survey['SurveyName'])
             data = q.get_survey_data(survey['SurveyID'])
             tablename = surveyname2tablename(survey['SurveyName'])
-            downloadpath = path.join(downloaddir, tablename + '.csv')
+            downloadpath = path.join(args.dst, tablename + '.csv')
             write_csv(data, downloadpath)
         panels = q.get_panels()
         for panel in panels:
             logger.info('Downloading "%s" ...' % panel['Name'])
             data = q.get_panel_data(panel['PanelID'])
             tablename = surveyname2tablename(panel['Name'])
-            downloadpath = path.join(downloaddir, tablename + '.csv')
+            downloadpath = path.join(args.dst, tablename + '.csv')
             write_csv(data, downloadpath)
 
 def surveyname2tablename(surveyname):
@@ -172,12 +151,10 @@ if __name__ == "__main__":
     parser.add_argument('dst', action="store")
     args = parser.parse_args()
 
-    read_auth(args.auth)
-
     if args.action == 'document':
-        document(args.dst)
+        document(args)
     elif args.action == 'download':
-        download(args.dst)
+        download(args)
     elif args.action == 'list':
         list(args)
 
