@@ -27,15 +27,15 @@ QUALTRICS_API_VERSION = '2.0'
 auth = {
     "qualtrics_user": "",
     "qualtrics_token": '',
-    "base_url": ""
+    "base_url": "",
+    "library_id": ""
 }
 
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger("qualpy")
-logger.setLevel(logging.DEBUG)
 # create console handler and set level to debug
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
 # create formatter
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 # add formatter to ch
@@ -48,46 +48,29 @@ def read_auth(authfile):
     f = open(authfile, 'rt')
     auth["qualtrics_user"] = f.readline().rstrip()
     auth["qualtrics_token"] = f.readline().rstrip()
+    auth["library_id"] = f.readline().rstrip()
     f.close()
 
-def get_surveys():
-    payload = { 
-        'User': auth['qualtrics_user'], 
-        'Token': auth['qualtrics_token'], 
-        'Version': QUALTRICS_API_VERSION,
-        'Request': 'getSurveys',
-        'Format': 'JSON'
-        }
-    r = requests.get(QUALTRICS_URL, params=payload)
-    output = r.json()
-    return output['Result']['Surveys']
+def document(docpath):
+    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+    
+    env = Environment(loader=PackageLoader("qualpy", ""))
+    template = env.get_template("DocumentationTemplate.html")
+    surveys = q.get_active_surveys()
+    for survey in surveys:
+        survey['TableName'] = surveyname2tablename(survey['SurveyName'])
+        questions = parse_survey_questions(survey)
+        survey['Questions'] = questions
 
-def get_active_surveys():
-    return [s for s in get_surveys() if s['SurveyStatus'] == u'Active' and not "test" in s['SurveyName'].lower()]
-
-def get_survey(survey_id):
-    logger.debug("fetching survey '%s'" % survey_id)
-    payload = { 
-        'User': auth['qualtrics_user'], 
-        'Token': auth['qualtrics_token'], 
-        'Version': QUALTRICS_API_VERSION,
-        'Request': 'getSurvey',
-        'SurveyID': survey_id
-        }
-    r = requests.get(QUALTRICS_URL, params=payload)
-    logger.debug(r.url)
-    logger.debug(r.status_code)
-    r.raise_for_status()
-    survey = r.content
-    return survey
-
-
-def get_survey_questions(survey_id):
-    details = get_survey(survey_id)
+    f = open(docpath, 'wt')
+    f.write(template.render(surveys=surveys))
+    f.close()
+    
+def parse_survey_questions(survey):
     questions = []
 
-    survey = BeautifulSoup(details, 'xml')
-    for q in survey.Questions.find_all('Question'):
+    xml = BeautifulSoup(survey, 'xml')
+    for q in xml.Questions.find_all('Question'):
         question = parse_question(q)
         questions.append(question)
     return questions
@@ -121,7 +104,8 @@ def parse_question(q):
     }
 
 def count_words():
-    for survey in get_surveys():
+    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+    for survey in q.get_surveys():
         if survey['SurveyStatus'] is not None: # == u'Active':
             questions = get_survey_questions(survey['SurveyID'])
             word_count = 0
@@ -138,28 +122,15 @@ def count_words():
 
             print "%s: %s" % (survey['SurveyName'], word_count)
 
-def document(docpath):
-    env = Environment(loader=PackageLoader("qualpy", ""))
-    template = env.get_template("DocumentationTemplate.html")
-    surveys = get_active_surveys()
-    for survey in surveys:
-        survey['TableName'] = surveyname2tablename(survey['SurveyName'])
-        questions = get_survey_questions(survey['SurveyID'])
-        survey['Questions'] = questions
-
-    f = open(docpath, 'wt')
-    f.write(template.render(surveys=surveys))
-    f.close()
-
 def download(downloaddir, survey_id=None):
-    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'])
+    q = Qualtrics(auth['qualtrics_user'], auth['qualtrics_token'], auth['library_id'])
     
     if not path.exists(downloaddir):
         os.makedirs(downloaddir)
 
     if survey_id:
         logger.info("Downloading {0}".format(survey_id))
-        data = q.get_data(survey['SurveyID'])
+        data = q.get_survey_data(survey['SurveyID'])
         tablename = surveyname2tablename(survey['SurveyName'])
         downloadpath = path.join(downloaddir, tablename + '.csv')
         write_csv(data, downloadpath)
@@ -168,8 +139,15 @@ def download(downloaddir, survey_id=None):
         surveys = q.get_active_surveys()
         for survey in surveys:
             logger.info('Downloading "%s" ...' % survey['SurveyName'])
-            data = q.get_data(survey['SurveyID'])
+            data = q.get_survey_data(survey['SurveyID'])
             tablename = surveyname2tablename(survey['SurveyName'])
+            downloadpath = path.join(downloaddir, tablename + '.csv')
+            write_csv(data, downloadpath)
+        panels = q.get_panels()
+        for panel in panels:
+            logger.info('Downloading "%s" ...' % panel['Name'])
+            data = q.get_panel_data(panel['PanelID'])
+            tablename = surveyname2tablename(panel['Name'])
             downloadpath = path.join(downloaddir, tablename + '.csv')
             write_csv(data, downloadpath)
 

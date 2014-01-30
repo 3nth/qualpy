@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 
 class Qualtrics(object):
     
-    def __init__(self, user, token):
+    def __init__(self, user, token, library_id):
         self._user = user
         self._token = token
+        self._library_id = library_id
         self._init_session()
         
     def _init_session(self):
@@ -45,6 +46,17 @@ class Qualtrics(object):
     def get_active_surveys(self):
         return [s for s in self.get_surveys() if s['SurveyStatus'] == u'Active' and not "test" in s['SurveyName'].lower()]
     
+    def create_distribution(self, panel_id, survey_id):
+        payload = { 
+            'Request': 'createDistribution',
+            'Format': 'JSON',
+            'PanelID': panel_id,
+            'LibraryID': self._library_id,
+            'SurveyID': survey_id
+            }
+        r = self._session.get(QUALTRICS_URL, params=payload)
+        return r
+        
     def get_survey(self, survey_id):
         logger.debug("fetching survey '%s'" % survey_id)
         payload = { 
@@ -58,45 +70,7 @@ class Qualtrics(object):
         survey = r.content
         return survey
 
-    def get_survey_questions(self, survey_id):
-        details = self.get_survey(survey_id)
-        questions = []
-
-        survey = BeautifulSoup(details, 'xml')
-        for q in survey.Questions.find_all('Question'):
-            question = self.parse_question(q)
-            questions.append(question)
-        return questions
-
-    def parse_question(self, q):
-
-        choices = []
-        if q.Choices:
-            for choice in q.Choices.find_all('Choice'):
-                choices.append({
-                    "ID": choice['ID'], 
-                    "Recode": choice['Recode'], 
-                    "Description": choice.Description
-                })
-
-        answers = []
-        if q.Answers:
-            for answer in q.Answers.find_all('Answer'):
-                answers.append({
-                    "ID": answer['ID'], 
-                    "Recode": answer['Recode'], 
-                    "Description": answer.Description
-                })
-            
-        return {
-            "ID": q['QuestionID'], 
-            "Type": q.Type, 
-            "Text": q.QuestionText, 
-            "Choices": choices, 
-            "Answers": answers
-        }
-
-    def get_data(self, survey_id):
+    def get_survey_data(self, survey_id):
         """
         """
         payload = { 
@@ -118,11 +92,42 @@ class Qualtrics(object):
 
         return data
 
+    def get_panels(self):
+        payload = { 
+            'Request': 'getPanels',
+            'Format': 'JSON',
+            'LibraryID': self._library_id
+            }
+        r = self._session.get(QUALTRICS_URL, params=payload)
+        output = r.json()
+        return output['Result']['Panels']
+        
+    def get_panel_data(self, panel_id):
+        payload = { 
+            'Request': 'getPanel',
+            'Format': 'CSV',
+            'LibraryID': self._library_id,
+            'PanelID': panel_id
+            }
+        r = self._session.get(QUALTRICS_URL, params=payload)
+        reader = csv.reader(StringIO(r.content))
+        rows = [row for row in reader]
+        return rows
+        
     def _clean_header(self, header1, header2):
         logger.debug("Header1: %s" % len(header1))
         logger.debug("Header2: %s" % len(header2))
         header = [h1 if h1.startswith('QID') else h2 for h1, h2 in zip(header1,  header2)]
         logger.debug("Header: %s" % len(header))
         return header
-        
+    
+    def get_recipient(self, recipient_id):
+        payload = { 
+            'Request': 'getRecipient',
+            'Format': 'JSON',
+            'LibraryID': self._library_id,
+            'RecipientID': recipient_id
+            }
+        r = self._session.get(QUALTRICS_URL, params=payload)
+        return r.content
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
