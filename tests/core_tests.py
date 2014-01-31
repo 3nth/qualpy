@@ -5,7 +5,7 @@ import pprint
 
 from nose.tools import *
 
-from qualpy import Qualtrics
+from qualpy.core import Qualtrics
 
 class test_qualtrics(object):
     
@@ -14,7 +14,7 @@ class test_qualtrics(object):
         self.pp = pprint.PrettyPrinter()
     
     def setup(self):
-        self.q = Qualtrics('auth.txt')
+        self.q = Qualtrics()
         if not path.exists('tests_out'):
             os.makedirs('tests_out')
 
@@ -45,9 +45,11 @@ class test_qualtrics(object):
                  f.write(str(p))
 
     def test_get_recipient(self):
-        panels = self.q.get_recipient('MLRP_0AjeSXB0FvvIjwp')
+        panel = self.q.get_panels()[0]
+        id = self.q.get_panel_data(panel['PanelID'])[1][0]
+        recipient = self.q.get_recipient(id)
         with open('tests_out/recipient.json', 'wt') as f:
-             f.write(str(panels))
+             f.write(str(recipient))
 
     def test_create_distribution(self):
         pass

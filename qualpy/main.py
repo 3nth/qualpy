@@ -7,6 +7,7 @@ from cliff.lister import Lister
 
 from .core import Qualtrics
 
+
 class QualpyApp(App):
 
     log = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class QualpyApp(App):
 
     def build_option_parser(self, description, version, argparse_kwargs=None):
         parser = super(QualpyApp, self).build_option_parser(description, version, argparse_kwargs)
-        parser.add_argument('--auth', action='store', default=None, help='Path to auth file.')
+        parser.add_argument('--config', action='store', default=None, help='Path to auth file.')
         return parser
         
     def initialize_app(self, argv):
@@ -41,7 +42,7 @@ class List(Lister):
     log = logging.getLogger(__name__)
  
     def take_action(self, parsed_args):
-        q = Qualtrics(self.app_args.auth)
+        q = Qualtrics(self.app_args.config)
         surveys = q.get_surveys()
         columns = ('Name',
                     'ID',
@@ -51,7 +52,6 @@ class List(Lister):
         return (columns, data)
 
 
-    
 def main(argv=sys.argv[1:]):
     myapp = QualpyApp()
     return myapp.run(argv)

@@ -23,11 +23,11 @@ class Download(Command):
     
     def take_action(self, parsed_args):
         
-        self.q = Qualtrics(self.app_args.auth)
-        self.out = parsed_args.out
+        self.q = Qualtrics(self.app_args.config)
+        self.out = parsed_args.out or os.getcwd()
         
-        if not path.exists(parsed_args.out):
-            os.makedirs(parsed_args.out)
+        if not path.exists(self.out):
+            os.makedirs(self.out)
 
         if parsed_args.survey == 'all':
             self.download_surveys()

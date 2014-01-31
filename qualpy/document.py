@@ -8,9 +8,11 @@ from jinja2 import Environment, PackageLoader
 
 from .core import Qualtrics
 
+
 def surveyname2tablename(surveyname):
     return surveyname.replace(' ', '').replace('-', '_')
-    
+
+
 class Document(Command):
     "Generate html documentation of active surveys."
     log = logging.getLogger(__name__)
@@ -21,9 +23,8 @@ class Document(Command):
         parser.add_argument('--out', action='store', help='Path to output file.')
         return parser
     
-    
     def take_action(self, parsed_args):
-        q = Qualtrics(self.app_args.auth)
+        q = Qualtrics(self.app_args.config)
     
         env = Environment(loader=PackageLoader("qualpy", ""))
         template = env.get_template("DocumentationTemplate.html")
