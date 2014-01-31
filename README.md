@@ -24,22 +24,28 @@ it's searched for in the following order:
 
 #### list
 
-list all surveys
+list all your surveys
 
 	qualpy list
 
 #### download
 
-downloads the results in csv format for all active surveys
+downloads your survey and panel results in csv format
 
-    qualpy download --out PATH/TO/DOWNLOAD/DIR
-        
-you'll get a file per survey
+###### download all active surveys
+
+    qualpy download --survey all --out PATH/TO/DOWNLOAD/DIR
+
+###### download a particular survey
+
+	qualpy download --survey SV_a3Ad245ADdaf --out PATH/TO/DOWNLOAD/DIR
+
+###### download all panels
+
+	qualpy download --panel all --out PATH/TO/DOWNLOAD/DIR
 
 #### document
 
-generates an html document describing the surveys (tables) and questions (columns)
+generates an html data dictionary of your surveys (tables) and questions (columns)
 
-        qualpy document --out PATH/TO/DOC.html
-        
-you'll get a really simple single page html file with the basic details
+    qualpy document --out PATH/TO/DOC.html
