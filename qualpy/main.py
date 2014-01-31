@@ -18,10 +18,10 @@ class QualpyApp(App):
             command_manager=CommandManager('qualpy'),
             )
 
-    # def build_option_parser(self, description, version, argparse_kwargs=None):
-    #     parser = super(QualpyApp, self).build_option_parser(description, version, argparse_kwargs)
-    #     parser.add_argument('--auth', action='store', default=None, help='Path to auth file.')
-    #     return parser
+    def build_option_parser(self, description, version, argparse_kwargs=None):
+        parser = super(QualpyApp, self).build_option_parser(description, version, argparse_kwargs)
+        parser.add_argument('--auth', action='store', default=None, help='Path to auth file.')
+        return parser
         
     def initialize_app(self, argv):
         self.log.debug('initialize_app')
@@ -39,14 +39,9 @@ class List(Lister):
     "List all surveys."
 
     log = logging.getLogger(__name__)
-    
-    def get_parser(self, prog_name):
-        parser = super(List, self).get_parser(prog_name)
-        parser.add_argument('--auth', action='store', help='Path to auth file.')
-        return parser
-        
+ 
     def take_action(self, parsed_args):
-        q = Qualtrics(parsed_args.auth)
+        q = Qualtrics(self.app_args.auth)
         surveys = q.get_surveys()
         columns = ('Name',
                     'ID',
@@ -55,6 +50,8 @@ class List(Lister):
         data = ((s['SurveyID'], s['SurveyName'], s['SurveyStatus']) for s in surveys)
         return (columns, data)
 
+
+    
 def main(argv=sys.argv[1:]):
     myapp = QualpyApp()
     return myapp.run(argv)

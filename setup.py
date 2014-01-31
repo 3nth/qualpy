@@ -15,13 +15,16 @@ config = {
     'version': qualpy.__version__,
     'install_requires': ['nose', 'BeautifulSoup4', 'lxml', 'requests', 'cliff'],
     'packages': ['qualpy'],
+    'package_dir': {'qualpy': 'qualpy'},
+    'package_data': {'qualpy': ['*.html']},
     'scripts': [],
     'entry_points': {
         'console_scripts': [
             'qualpy = qualpy.main:main'
         ],
         'qualpy': [
-            'list = qualpy.main:List'
+            'list = qualpy.main:List',
+            'document = qualpy.document:Document'
         ],
     },
     'name': 'qualpy',
