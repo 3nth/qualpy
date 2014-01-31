@@ -53,7 +53,7 @@ class test_qualtrics(object):
 
     def test_create_distribution(self):
         pass
-        panels = self.q.create_distribution('ML_d6EIoXwwBaPGVdX', 'SV_cD5WTyytP5oetcp')
+        panels = self.q.create_distribution('', '')
         with open('tests_out/create_distribution.json', 'wt') as f:
              f.write(str(panels))
 
