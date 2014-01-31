@@ -5,21 +5,34 @@ your Qualtrics buddy
 
 #### your authentication info
 
-It's provided as a filepath at the command line (--auth). 
+qualpy takes a config file. 
 
-The file should have two lines: 1) username 2) api token
+######qualpy.ini
 
-        me@somewhere.com
-        asdfasdfgq4t14gavr1342tqer
+	[account]
+	user = someone@somewhere.com
+	token = tDF5xbafdnWShsdBHSDGHaF
+	library_id = UR_4afh5s3fbadfh34
 
+it's searched for in the following order:
+
+1. argument: --config=path
+2. qualpy.ini in cwd
+3. qualpy.ini in home directory (~ or %HOME%)
 
 ## qualpy does
+
+#### list
+
+list all surveys
+
+	qualpy list
 
 #### download
 
 downloads the results in csv format for all active surveys
 
-        qualpy --auth=PATH/TO/AUTH download PATH/TO/DOWNLOAD/DIR
+    qualpy download --out PATH/TO/DOWNLOAD/DIR
         
 you'll get a file per survey
 
@@ -27,6 +40,6 @@ you'll get a file per survey
 
 generates an html document describing the surveys (tables) and questions (columns)
 
-        qualpy --auth=PATH/TO/AUTH download PATH/TO/DOC.html
+        qualpy document --out PATH/TO/DOC.html
         
 you'll get a really simple single page html file with the basic details
