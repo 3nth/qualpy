@@ -44,8 +44,8 @@ class List(Lister):
     def take_action(self, parsed_args):
         q = Qualtrics(self.app_args.config)
         surveys = q.get_surveys()
-        columns = ('Name',
-                    'ID',
+        columns = ('ID',
+                    'Name',
                     'Status'
                     )
         data = ((s['SurveyID'], s['SurveyName'], s['SurveyStatus']) for s in surveys)
