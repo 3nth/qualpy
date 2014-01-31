@@ -20,7 +20,7 @@ config = {
     'packages': ['qualpy'],
     'package_dir': {'qualpy': 'qualpy'},
     'package_data': {'qualpy': ['*.html']},
-    'platform': 'any',
+    'platforms': 'any',
     'scripts': [],
     'entry_points': {
         'console_scripts': [
