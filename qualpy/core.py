@@ -157,4 +157,23 @@ class Qualtrics(object):
             }
         r = self._session.get(QUALTRICS_URL, params=payload)
         return r.content
+
+def count_words():
+    q = Qualtrics()
+    for survey in q.get_surveys():
+        if survey['SurveyStatus'] is not None: # == u'Active':
+            questions = get_survey_questions(survey['SurveyID'])
+            word_count = 0
+            for q in questions:
+                question = questions[q]
+                q_count = len(question['Text'].split()) if question['Text'] else 0
+                word_count += q_count
+                for answer in question['Answers']:
+                    a_count = len(answer['Description'].split()) if answer['Description'] else 0
+                    word_count += a_count
+                for choice in question['Choices']:
+                    c_count = len(choice['Description'].split()) if choice['Description'] else 0
+                    word_count += c_count
+
+            print "%s: %s" % (survey['SurveyName'], word_count)
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
