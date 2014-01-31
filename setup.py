@@ -24,7 +24,8 @@ config = {
         ],
         'qualpy': [
             'list = qualpy.main:List',
-            'document = qualpy.document:Document'
+            'document = qualpy.document:Document',
+            'download = qualpy.download:Download'
         ],
     },
     'name': 'qualpy',

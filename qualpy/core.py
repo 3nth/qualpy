@@ -5,12 +5,14 @@ core.py
 Created by Derek Flenniken on 1/2/2014.
 Copyright (c) 2014 Center for Imaging of Neurodegenerative Diseases
 """
-from StringIO import StringIO
+from ConfigParser import SafeConfigParser
 import csv
 import logging
+from os import path
+from StringIO import StringIO
 
-import requests
 from bs4 import BeautifulSoup
+import requests
 
 QUALTRICS_URL= 'https://new.qualtrics.com/WRAPI/ControlPanel/api.php'
 QUALTRICS_API_VERSION = '2.0'
@@ -19,17 +21,28 @@ logger = logging.getLogger(__name__)
 
 class Qualtrics(object):
     
-    def __init__(self, auth):
-        self._read_auth(auth)
+    def __init__(self, config=None):
+        self._read_config(config)
         self._init_session()
     
-    def _read_auth(self, authfile):
-        logger.debug('reading auth file: %s' % authfile)
-        f = open(authfile, 'rt')
-        self._user = f.readline().rstrip()
-        self._token = f.readline().rstrip()
-        self._library_id = f.readline().rstrip()
-        f.close()
+    def _read_config(self, config=None):
+        parser = SafeConfigParser()
+
+        if config:
+            logger.info('Parsing config file %s' % config)
+            parser.read(config)
+        elif path.exists('qualpy.ini'):
+            logger.info('Parsing config file %s' % path.abspath('qualpy.ini'))
+            parser.read('qualpy.ini')
+        elif path.exists(path.expanduser("~/qualpy.ini")):
+            logger.info('Parsing config file %s' % path.abspath(path.expanduser('~/qualpy.ini')))
+            parser.read('qualpy.ini')
+        else:
+            raise Exception("No configuration file found!")
+
+        self._user = parser.get('account', 'user')
+        self._token = parser.get('account', 'token')
+        self._library_id = parser.get('account', 'library_id')
         
     def _init_session(self):
         payload = { 

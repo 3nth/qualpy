@@ -6,7 +6,6 @@ beautifulsoup4==4.3.2
 docutils==0.11
 lxml==3.3.0
 nose==1.3.0
-qualpy==0.3.0
 requests==2.1.0
 sphinx-rtd-theme==0.1.5
 sphinxcontrib-napoleon==0.2.4
