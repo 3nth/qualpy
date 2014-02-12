@@ -20,7 +20,11 @@ QUALTRICS_API_VERSION = '2.0'
 logger = logging.getLogger(__name__)
 
 class Qualtrics(object):
+    """Main wrapper to Qualtrics API
     
+    Args:
+        config (str): path to config file
+    """
     def __init__(self, config=None):
         self._read_config(config)
         self._init_session()
@@ -60,7 +64,8 @@ class Qualtrics(object):
             None
             
         Returns:
-            list: a list of all surveys
+            list: a list of all surveys. each survey is represented as a dict.
+                see Qualtrics API doc or run nosetests to see more.
         """
         payload = { 
             'Request': 'getSurveys',
@@ -71,9 +76,30 @@ class Qualtrics(object):
         return output['Result']['Surveys']
     
     def get_active_surveys(self):
-        return [s for s in self.get_surveys() if s['SurveyStatus'] == u'Active' and not "test" in s['SurveyName'].lower()]
+        """Gets all active surveys
+
+        SurveyStatus = Active
+
+        Args:
+            None
+
+
+        """
+        return [s for s in self.get_surveys() if s['SurveyStatus'] == u'Active']
     
     def create_distribution(self, panel_id, survey_id):
+        """Create a new distribution
+
+        see Qualtrics API - createDistribution
+
+        Args:
+            panel_id (str): the panel to distribute the survey to
+            survey_id (str): the survey to distribute
+
+        Returns:
+
+
+        """
         payload = { 
             'Request': 'createDistribution',
             'Format': 'JSON',
@@ -85,6 +111,14 @@ class Qualtrics(object):
         return r
         
     def get_survey(self, survey_id):
+        """Get XML description of survey
+
+        Args:
+            survey_id (str): the survey to get
+
+        Returns:
+            str: the XML description
+        """
         logger.debug("fetching survey '%s'" % survey_id)
         payload = { 
             'Request': 'getSurvey',
@@ -98,7 +132,13 @@ class Qualtrics(object):
         return survey
 
     def get_survey_data(self, survey_id):
-        """
+        """Get tabular results of a survey
+
+        Args:
+            survey_id (str): the survey to get
+
+        Returns:
+            list: first item is the header, remaining items are the rows
         """
         payload = { 
             'Request': 'getLegacyResponseData',
@@ -120,6 +160,14 @@ class Qualtrics(object):
         return data
 
     def get_panels(self):
+        """Get all panels
+
+        Args:
+            None
+
+        Returns:
+            list: each item is a dict representing a panel
+        """
         payload = { 
             'Request': 'getPanels',
             'Format': 'JSON',
@@ -130,6 +178,15 @@ class Qualtrics(object):
         return output['Result']['Panels']
         
     def get_panel_data(self, panel_id):
+        """Get tabular panel data
+
+        Args:
+            panel_id (str): the panel to retrieve
+
+        Returns:
+            list: first item is header. remaining items are data rows
+
+        """
         payload = { 
             'Request': 'getPanel',
             'Format': 'CSV',
@@ -149,6 +206,14 @@ class Qualtrics(object):
         return header
     
     def get_recipient(self, recipient_id):
+        """Get details on recipient
+
+        Args:
+            recipient_id (str): the recipient to get
+
+        Returns:
+            str: json document representing recipient
+        """
         payload = { 
             'Request': 'getRecipient',
             'Format': 'JSON',

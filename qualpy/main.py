@@ -5,6 +5,7 @@ from cliff.app import App
 from cliff.commandmanager import CommandManager
 from cliff.lister import Lister
 
+import qualpy
 from .core import Qualtrics
 
 
@@ -15,7 +16,7 @@ class QualpyApp(App):
     def __init__(self):
         super(QualpyApp, self).__init__(
             description='qualpy',
-            version='0.1',
+            version=qualpy.__version__,
             command_manager=CommandManager('qualpy'),
             )
 

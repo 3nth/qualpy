@@ -7,16 +7,20 @@ except ImportError:
 import qualpy
 
 config = {
+    'name': 'qualpy',
     'description': 'your qualtrics buddy',
-    'author': 'Derek Flenniken',
+    'version': qualpy.__version__,
     'url': 'https://github.com/3nth/qualpy',
+    'license': 'MIT License',
+    'author': 'Derek Flenniken',
     'download_url': 'https://github.com/3nth/qualpy',
     'author_email': 'derek.flenniken@ucsf.edu',
-    'version': qualpy.__version__,
-    'install_requires': ['nose', 'BeautifulSoup4', 'lxml', 'requests', 'cliff'],
+    'tests_require': ['nose'],
+    'install_requires': ['BeautifulSoup4', 'lxml', 'requests', 'cliff'],
     'packages': ['qualpy'],
     'package_dir': {'qualpy': 'qualpy'},
     'package_data': {'qualpy': ['*.html']},
+    'platforms': 'any',
     'scripts': [],
     'entry_points': {
         'console_scripts': [
@@ -28,8 +32,18 @@ config = {
             'download = qualpy.download:Download'
         ],
     },
-    'name': 'qualpy',
+    
     'zip_safe': False,
+    'classifiers': [
+        'Programming Language :: Python',
+        'Development Status :: 4 - Beta',
+        'Natural Language :: English',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        ]
 }
 
 setup(**config)
