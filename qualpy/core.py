@@ -37,10 +37,10 @@ class Qualtrics(object):
             parser.read(config)
         elif path.exists('qualpy.ini'):
             logger.info('Parsing config file %s' % path.abspath('qualpy.ini'))
-            parser.read('qualpy.ini')
+            parser.read(path.abspath('qualpy.ini'))
         elif path.exists(path.expanduser("~/qualpy.ini")):
             logger.info('Parsing config file %s' % path.abspath(path.expanduser('~/qualpy.ini')))
-            parser.read('qualpy.ini')
+            parser.read(path.abspath(path.expanduser('~/qualpy.ini')))
         else:
             raise Exception("No configuration file found!")
 
