@@ -39,3 +39,6 @@ out.html
 download
 docs/_build
 qualpy.ini
+
+venv
+.idea

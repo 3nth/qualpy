@@ -7,3 +7,7 @@ requests==2.5.1
 Sphinx==1.2.3
 sphinx-rtd-theme==0.1.6
 sphinxcontrib-napoleon==0.2.9
+twine==1.4.0
+wheel==0.24.0
+tox==1.8.1
+flake8==2.3.0

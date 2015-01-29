@@ -16,7 +16,7 @@ config = {
     'download_url': 'https://github.com/3nth/qualpy',
     'author_email': 'derek.flenniken@ucsf.edu',
     'tests_require': ['nose'],
-    'install_requires': ['BeautifulSoup4', 'lxml', 'requests', 'cliff'],
+    'install_requires': ['BeautifulSoup4', 'lxml', 'requests', 'cliff', 'Jinja2'],
     'packages': ['qualpy'],
     'package_dir': {'qualpy': 'qualpy'},
     'package_data': {'qualpy': ['*.html']},
