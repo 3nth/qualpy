@@ -11,11 +11,11 @@ config = {
     'description': 'your qualtrics buddy',
     'version': qualpy.__version__,
     'url': 'https://github.com/3nth/qualpy',
-    'license': 'MIT License'
+    'license': 'MIT License',
     'author': 'Derek Flenniken',
     'download_url': 'https://github.com/3nth/qualpy',
     'author_email': 'derek.flenniken@ucsf.edu',
-    'tests_require': ['nose']
+    'tests_require': ['nose'],
     'install_requires': ['BeautifulSoup4', 'lxml', 'requests', 'cliff'],
     'packages': ['qualpy'],
     'package_dir': {'qualpy': 'qualpy'},
