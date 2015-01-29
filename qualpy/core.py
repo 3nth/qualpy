@@ -12,6 +12,7 @@ from os import path
 from StringIO import StringIO
 
 from bs4 import BeautifulSoup
+import lxml
 import requests
 
 QUALTRICS_URL= 'https://new.qualtrics.com/WRAPI/ControlPanel/api.php'
@@ -29,16 +30,17 @@ class Qualtrics(object):
         parser = SafeConfigParser()
 
         if config:
-            logger.info('Parsing config file %s' % config)
-            parser.read(config)
+            if not path.exists(config):
+                raise Exception("config path does not exist!\n\t%s" % config)
         elif path.exists('qualpy.ini'):
-            logger.info('Parsing config file %s' % path.abspath('qualpy.ini'))
-            parser.read('qualpy.ini')
+            config = path.abspath('qualpy.ini')
         elif path.exists(path.expanduser("~/qualpy.ini")):
-            logger.info('Parsing config file %s' % path.abspath(path.expanduser('~/qualpy.ini')))
-            parser.read('qualpy.ini')
+            config = path.abspath(path.expanduser('~/qualpy.ini'))
         else:
             raise Exception("No configuration file found!")
+
+        logger.info('Parsing config file %s' % config)
+        parser.read(config)
 
         self._user = parser.get('account', 'user')
         self._token = parser.get('account', 'token')
