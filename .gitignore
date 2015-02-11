@@ -42,3 +42,4 @@ qualpy.ini
 
 venv
 .idea
+tests_out
