@@ -29,13 +29,13 @@ class test_qualtrics(object):
 
     def test_get_survey(self):
         survey_id = self.q.get_surveys()[0]['SurveyID']
-        survey = self.q.get_survey('SV_bODTUvp9Bn7s3eR')
+        survey = self.q.get_survey('SV_bNiZN77psPOU4rH')
         with open(path.join(output, 'survey.xml'), 'wt') as f:
             f.write(str(survey))
 
     def test_get_survey_data(self):
         survey_id = self.q.get_surveys()[0]['SurveyID']
-        data = self.q.get_survey_data('SV_bODTUvp9Bn7s3eR')
+        data = self.q.get_survey_data('SV_bNiZN77psPOU4rH')
         self.write_csv(data, path.join(output, 'survey.csv'))
 
 
