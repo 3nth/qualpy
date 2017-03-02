@@ -1,33 +1,28 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <style>
-            table {
-                border: 1px solid black;
-                border-collapse: collapse;
-                width: 100%;
-            }
-            table.choices, table.choices th, table.choices td {
-                border: none;
-            }
-            caption {
-                background-color: blu;
-                color: white;
-            }
-            tbody tr:nth-child(odd){ background-color: lightblue; }
-            tbody tr:nth-child(odd) tr:nth-child(even){ background-color: white; }
-            tbody tr:nth-child(even) tr:nth-child(odd){ background-color: lightgray; }
-            td, th {
-                border: 1px solid black;
-                vertical-align: top;
-            }
-        </style>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title></title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
     </head>
     <body>
-        <table id="tables">
-            <caption>
-                <h2>Tables</h2>
+    <div class="container">
+        <div class="row">
+        <div class="col-md-12">
+<div class="page-header">
+                <h1>Tables</h2>
             </caption>
+
+                <table id="tables" class="table table-striped table-bordered">
+
             <thead>
                 <tr>
                     <th>Table</th>
@@ -43,17 +38,22 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
+</div>
+
+
 
         {% for survey in surveys %}
-            <br />
-            <br />
-            <a id="{{ survey.TableName }}" href="#tables" style="float: right; margin-right: 2em;">&uarr; Top</a>
-            <table>
-                <caption>
-                    <h4>{{ survey.TableName }}</h4>
+    <div class="row">
+    <div id="{{ survey.TableName }}" class="col-md-12">
 
-                    <em>{{ survey.SurveyName }}</em>
-                </caption>
+
+            <h3>{{ survey.TableName }}
+            <a href="#tables" class="pull-right h5">&uarr; Tables</a>
+            </h3>
+
+                <table class="table table-striped table-bordered">
+
                 <thead>
                     <tr>
                         <th>Column Name</th>
@@ -65,22 +65,28 @@
                 {% for question in survey.Questions %}
                     <tr>
                         <td>{{ question.ID }}</td>
-                        <td>{{ question.Text }}</td>
+                        <td>{{ question.Text|safe }}</td>
                         <td>
-                            <table class="choices">
+                            <dl class="dl-horizontal">
                             {% for choice in question.Choices  %}
-                                <tr>
-                                    <td><strong>{{ choice.Recode }}</strong></td>
-                                    <td>{{ choice.Description }}</td>
-                                </tr>
+                                    <dt style="width: 20px;">{{ choice.Recode }}</dt>
+                                    <dd style="margin-left: 40px;">{{ choice.Description }}</dd>
                             {% endfor %}
-                            </table>
+
+</dl>
+
                         </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
+</div>
         {% endfor %}
-
+        </div>
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     </body>
 </html>

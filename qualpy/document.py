@@ -9,6 +9,9 @@ from jinja2 import Environment, PackageLoader
 
 from .core import Qualtrics
 
+import HTMLParser
+html_parser = HTMLParser.HTMLParser()
+
 
 def surveyname2tablename(surveyname):
     return surveyname.replace(' ', '').replace('-', '_')
@@ -34,7 +37,8 @@ class Document(Command):
 
         surveys = []
         for id in parsed_args.survey:
-            surveys.append(self.document_survey(q, id))
+            survey = self.document_survey(q, id)
+            surveys.append(survey)
 
         # surveys = q.get_active_surveys()
         # for s in surveys:
@@ -44,8 +48,9 @@ class Document(Command):
         #     questions = self.parse_survey_questions(survey)
         #     s['Questions'] = questions
 
-        f = open(parsed_args.out, 'wt')
-        f.write(template.render(surveys=surveys))
+        f = open(parsed_args.out, 'wb')
+        rendered = template.render(surveys=surveys).encode('utf-8')
+        f.write(rendered)
         f.close()
 
     def document_survey(self, q, survey_id):
@@ -64,20 +69,23 @@ class Document(Command):
 
         xml = BeautifulSoup(survey, 'xml')
         for q in xml.Questions.find_all('Question'):
-            if q.QuestionText.string == "Click to write the question text" or q.Type.string == "DB":
-                continue
+
             question = self.parse_question(q)
             if question:
                 questions.extend(question)
         return questions
 
     def parse_question(self, q):
-        type= q.Type.string
+        t = q.Type.string
         selector = q.Selector.string
-        self.log.info("Parsing " + q['QuestionID'] + "[" + type + ": " + selector + "]")
-        if type in ["Matrix", "TE", "Slider"]:
+        self.log.info("Parsing " + q['QuestionID'] + "[" + t + ": " + selector + "]")
+
+        if q.QuestionText.string == "Click to write the question text" or t == "DB" or t == "HotSpot":
+            return None
+
+        if t in ["Matrix", "TE", "Slider"]:
             return self.parse_matrix(q)
-        if type == "MC" and selector == "MAVR":
+        if t == "MC" and selector == "MAVR":
             return self.parse_matrix(q)
         return self.parse_mc(q)
 
@@ -105,18 +113,43 @@ class Document(Command):
         questions.append( {
             "ID": q['QuestionID'],
             "Type": q.Type,
-            "Text": q.QuestionText,
+            "Text": self.html_decode(q.QuestionText.text.encode("ascii", "ignore")),
             "Choices": choices,
             "Answers": answers
         })
         return questions
 
+    def html_decode(self, s):
+        """
+        Returns the ASCII decoded version of the given HTML string. This does
+        NOT remove normal HTML tags like <p>.
+        """
+        htmlCodes = (
+                ("'", '&#39;'),
+                ('"', '&quot;'),
+                ('>', '&gt;'),
+                ('<', '&lt;'),
+                ('&', '&amp;')
+            )
+        for code in htmlCodes:
+            s = s.replace(code[1], code[0])
+        return s
+
     def parse_matrix(self, q):
         questions = []
 
         qid = q['QuestionID']
-        qtext = q.QuestionText.string
+        qtext = self.html_decode(q.QuestionText.text.encode("ascii", "ignore"))
         answers = []
+
+        if not q.Answers and len(q.Choices.find_all('Choice')) == 0:
+
+            question = {
+                "ID": qid,
+                 "Text": qtext
+            }
+            questions.append(question)
+
         if q.Answers:
             for answer in q.Answers.find_all('Answer'):
                 answers.append({
