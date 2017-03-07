@@ -17,11 +17,14 @@
     <div class="container">
         <div class="row">
         <div class="col-md-12">
-<div class="page-header">
-                <h1>Tables</h2>
-            </caption>
 
-                <table id="tables" class="table table-striped table-bordered">
+{% if surveys|length > 1 %}
+<div class="page-header">
+        <h1>Tables</h1>
+</div>
+
+
+<table id="tables" class="table table-striped table-bordered">
 
             <thead>
                 <tr>
@@ -38,17 +41,17 @@
                 {% endfor %}
             </tbody>
         </table>
-        </div>
-</div>
+
+{% endif %}
 
 
 
-        {% for survey in surveys %}
+{% for survey in surveys %}
     <div class="row">
     <div id="{{ survey.TableName }}" class="col-md-12">
 
 
-            <h3>{{ survey.TableName }}
+            <h3>{{ survey.SurveyName }}
             <a href="#tables" class="pull-right h5">&uarr; Tables</a>
             </h3>
 
