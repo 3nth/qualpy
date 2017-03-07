@@ -12,6 +12,9 @@ from .core import Qualtrics
 import HTMLParser
 html_parser = HTMLParser.HTMLParser()
 
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 def surveyname2tablename(surveyname):
     return surveyname.replace(' ', '').replace('-', '_')
@@ -20,7 +23,7 @@ def surveyname2tablename(surveyname):
 class Document(Command):
     "Generate html documentation of active surveys."
     log = logging.getLogger(__name__)
-    
+
     
     def get_parser(self, prog_name):
         parser = argparse.ArgumentParser() #super(Command, self).get_parser(prog_name)
@@ -79,14 +82,14 @@ class Document(Command):
         t = q.Type.string
         selector = q.Selector.string
         self.log.info("Parsing " + q['QuestionID'] + "[" + t + ": " + selector + "]")
-
-        if q.QuestionText.string == "Click to write the question text" or t == "DB" or t == "HotSpot":
+        self.log.debug(q.prettify())
+        if q.QuestionText.string == "Click to write the question text" or t == "DB":
             return None
 
-        if t in ["Matrix", "TE", "Slider"]:
-            return self.parse_matrix(q)
+        if t in ["Matrix", "TE", "Slider", "HotSpot"]:
+            return self.parse_matrix(q, selector)
         if t == "MC" and selector == "MAVR":
-            return self.parse_matrix(q)
+            return self.parse_matrix(q, selector)
         return self.parse_mc(q)
 
 
@@ -98,7 +101,7 @@ class Document(Command):
                 choices.append({
                     "ID": choice['ID'],
                     "Recode": choice['Recode'],
-                    "Description": choice.Description
+                    "Description": choice.Description.text.encode()
                 })
 
         answers = []
@@ -107,13 +110,13 @@ class Document(Command):
                 answers.append({
                     "ID": answer['ID'],
                     "Recode": answer['Recode'],
-                    "Description": answer.Description
+                    "Description": answer.Description.text.encode()
                 })
 
         questions.append( {
             "ID": q['QuestionID'],
             "Type": q.Type,
-            "Text": self.html_decode(q.QuestionText.text.encode("ascii", "ignore")),
+            "Text": self.html_decode(q.QuestionText.text.encode()),
             "Choices": choices,
             "Answers": answers
         })
@@ -135,11 +138,16 @@ class Document(Command):
             s = s.replace(code[1], code[0])
         return s
 
-    def parse_matrix(self, q):
+    def parse_matrix(self, q, selector):
         questions = []
 
         qid = q['QuestionID']
-        qtext = self.html_decode(q.QuestionText.text.encode("ascii", "ignore"))
+        ctags = q.find("ChoiceExportTags")
+        tag = q.find("ExportTag")
+        if ctags != None and tag != None:
+            qid = tag.string.encode()
+        
+        qtext = self.html_decode(q.QuestionText.text.encode())
         answers = []
 
         if not q.Answers and len(q.Choices.find_all('Choice')) == 0:
@@ -160,15 +168,42 @@ class Document(Command):
 
         if q.Choices:
             for choice in q.Choices.find_all('Choice'):
-                id = qid + "_" + choice['Recode']
-                if choice.has_attr('TextEntry'):
-                    id += '_TEXT'
-                question = {
-                    "ID": id,
-                    "Text": qtext + '\n' + choice.Description.string,
-                    "Choices": answers
-                }
-                questions.append(question)
+                cid =  qid + "_" + choice['Recode']
+                
+                if selector == "Likert":
+                    question = {
+                        "ID": cid,
+                        "Text": qtext + '\n' + choice.Description.string,
+                        "Choices": answers
+                    }
+
+                    questions.append(question)
+
+                    if choice.has_attr('TextEntry'):
+                        question = {
+                            "ID": cid + "_TEXT",
+                            "Text": qtext + '\n' + choice.Description.string,
+                            "Choices": []
+                        }
+                        questions.append(question)
+                else:
+                    if choice.has_attr('TextEntry'):
+                        question = {
+                            "ID": cid + "_TEXT",
+                            "Text": qtext + '\n' + choice.Description.string,
+                            "Choices": []
+                        }
+                    
+                    else:
+                        question = {
+                            "ID": cid,
+                            "Text": qtext + '\n' + choice.Description.string,
+                            "Choices": answers
+                        }
+                
+                    questions.append(question)
+
+
 
 
 
